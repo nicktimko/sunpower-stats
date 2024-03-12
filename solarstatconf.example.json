@@ -1,0 +1,10 @@
+{
+    "#": "copy and edit this file!",
+    "influx": {
+        "base_url": "http://192.168.1.2:8086",
+        "token": "QSB2ZXJ5IGxvbmcgSW5mbHV4IHRva2VuIHdpdGggd3JpdGUgcGVybXMgdG8gdGhlIGNvcnJlY3QgYnVja2V0IQ==",
+        "org": "ORG",
+        "bucket": "BUCKET"
+    },
+    "solar_base_url": "http://192.168.1.3"
+}
