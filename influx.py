@@ -4,7 +4,7 @@ import attrs
 import requests
 
 
-name_validator = attrs.validators.matches_re("[a-zA-Z][_a-zA-Z]*")
+name_validator = attrs.validators.matches_re("[a-zA-Z][_a-zA-Z0-9]*")
 
 
 def render_item(key, value):
@@ -14,10 +14,10 @@ def render_item(key, value):
         formatted = 'true' if value else 'false'
     elif isinstance(value, int):
         if (value - 1 if value < 0 else 0).bit_length() > 63:
-            formatted = format(value, "e")
+            formatted = format(value, "f")
         formatted = f"{value:d}i"
     elif isinstance(value, float):
-        formatted = format(value, "e")
+        formatted = format(value, "f")
     else:
         raise TypeError("unsupported value type", type(value))
 

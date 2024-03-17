@@ -10,8 +10,12 @@ import influx
 # For a given DEVICE TYPE:
 # * what are the measurements to grab from it, and what converter to use?
 # * what are the additional tags to include?
-relevant_fields = {
-    "PVS": {
+DEVICE_LOG_SPEC = [
+    {
+        "device_pattern": {
+            "DEVICE_TYPE": "PVS",
+        },
+        "name": "supervisor",
         "measurements": [
             ("dl_err_count", int),
             ("dl_comm_err", int),
@@ -23,51 +27,88 @@ relevant_fields = {
             ("dl_mem_used", int),
             ("dl_flash_avail", int),
         ],
-        "tags": [],
+        "tags": ["SERIAL"],
     },
-    "Power Meter": {
+    {
+        "device_pattern": {
+            "DEVICE_TYPE": "Power Meter",
+            "subtype": "GROSS_PRODUCTION_SITE",
+        },
+        "name": "meter_production",
         "measurements": [
-            ("ct_scl_fctr", float), # '100',
-            ("net_ltea_3phsum_kwh", float), # '2194.12',
-            ("p_3phsum_kw", float), # '-3.7339',
-            ("q_3phsum_kvar", float), # '-0.7258',
-            ("s_3phsum_kva", float), # '3.8117',
-            ("tot_pf_rto", float), # '-0.9734',
-            ("freq_hz", float), # '60',
-            ("i1_a", float), # '15.2739',
-            ("i2_a", float), # '15.3827',
-            ("v1n_v", float), # '124.2079',
-            ("v2n_v", float), # '124.4629',
-            ("v12_v", float), # '248.6707',
-            ("p1_kw", float), # '-1.882',
-            ("p2_kw", float), # '-1.8519',
-            ("neg_ltea_3phsum_kwh", float), # '1537.46',
-            ("pos_ltea_3phsum_kwh", float), # '3731.6',
-            ("CAL0", int), # 100, 50  - calibration? unsure...log it.
+            ("ct_scl_fctr", float),  # '50',
+            (
+                "net_ltea_3phsum_kwh",
+                float,
+            ),  # '2206.66', cf. "neg_ltea_3phsum_kwh", "pos_ltea_3phsum_kwh"
+            ("p_3phsum_kw", float),  # '3.0426',
+            ("q_3phsum_kvar", float),  # '0.6076',
+            ("s_3phsum_kva", float),  # '3.1163',
+            ("tot_pf_rto", float),  # '0.9765',
+            ("freq_hz", float),  # '60',
+            ("i_a", float),  # '12.5379',  cf. "i1_a", "i2_a"
+            ("v12_v", float),  # '248.55', cf. "v1n_v", "v2n_v", "v12_v"
+            ("CAL0", float),  # '50',
+            # no equiv for "p1_kw", "p2_kw"?
         ],
         "tags": [
             "SERIAL",
             "subtype",
         ],
     },
-    "Inverter": {
+    {
+        "device_pattern": {
+            "DEVICE_TYPE": "Power Meter",
+            "subtype": "NET_CONSUMPTION_LOADSIDE",
+        },
+        "name": "meter_consumption",
         "measurements": [
-            ("ltea_3phsum_kwh", float), # '89.4825',
-            ("p_3phsum_kw", float), # '0.0301',
-            ("vln_3phavg_v", float), # '244.79',
-            ("i_3phsum_a", float), # '0.12',
-            ("p_mppt1_kw", float), # '0.0305',
-            ("v_mppt1_v", float), # '36.7',
-            ("i_mppt1_a", float), # '0.83',
-            ("t_htsnk_degc", float), # '23',
-            ("freq_hz", float), # '60',
-            ("stat_ind", float), # '0',
+            ("ct_scl_fctr", float),  # '100',
+            ("net_ltea_3phsum_kwh", float),  # '2194.12',
+            ("p_3phsum_kw", float),  # '-3.7339',
+            ("q_3phsum_kvar", float),  # '-0.7258',
+            ("s_3phsum_kva", float),  # '3.8117',
+            ("tot_pf_rto", float),  # '-0.9734',
+            ("freq_hz", float),  # '60',
+            ("i1_a", float),  # '15.2739',
+            ("i2_a", float),  # '15.3827',
+            ("v1n_v", float),  # '124.2079',
+            ("v2n_v", float),  # '124.4629',
+            ("v12_v", float),  # '248.6707',
+            ("p1_kw", float),  # '-1.882',
+            ("p2_kw", float),  # '-1.8519',
+            ("neg_ltea_3phsum_kwh", float),  # '1537.46',
+            ("pos_ltea_3phsum_kwh", float),  # '3731.6',
+            ("CAL0", int),  # 100, 50  - calibration? unsure...log it.
+        ],
+        "tags": [
+            "SERIAL",
+            "subtype",
+        ],
+    },
+    {
+        "device_pattern": {
+            "DEVICE_TYPE": "Inverter",
+        },
+        "name": "inverter",
+        "measurements": [
+            ("ltea_3phsum_kwh", float),  # '89.4825',
+            ("p_3phsum_kw", float),  # '0.0301',
+            ("vln_3phavg_v", float),  # '244.79',
+            ("i_3phsum_a", float),  # '0.12',
+            ("p_mppt1_kw", float),  # '0.0305',
+            ("v_mppt1_v", float),  # '36.7',
+            ("i_mppt1_a", float),  # '0.83',
+            ("t_htsnk_degc", float),  # '23',
+            ("freq_hz", float),  # '60',
+            ("stat_ind", float),  # '0',
         ],
         "tags": [
             "SERIAL",
         ],
     },
-}
+]
+
 
 def digest_device_data(data):
     devices = {}
@@ -78,7 +119,7 @@ def digest_device_data(data):
     devices["PVS"]
 
 
-def solar_devicelist(base_url):
+def solar_devicelist(base_url) -> dict[str, str | list[dict[str, str]]]:
     """
     Takes ~5-6 seconds, about 1/5 sec per device to list.
     """
@@ -88,6 +129,7 @@ def solar_devicelist(base_url):
     )
     resp.raise_for_status()
     return resp.json()
+
 
 def solar_devicedetails(base_url, serial):
     """
@@ -101,10 +143,11 @@ def solar_devicedetails(base_url, serial):
         params={"Command": "DeviceDetails", "SerialNumber": serial},
     )
     # resp.raise_for_status()
-    return resp.json()
+    # return resp.json()
+    return resp, resp.json()
 
 
-def commatime_convert(time) -> datetime.datetime:
+def commatime_convert(time: str) -> datetime.datetime:
     """
     Timestamps returned are in the format 'YYYY,mm,dd,HH,MM,SS' in UTC time
     """
@@ -114,19 +157,49 @@ def commatime_convert(time) -> datetime.datetime:
     )
 
 
-def debug_timestamps(solar_base_url, influx_client, more_args):
+def commatime_convert_ns(time: str) -> int:
+    return int(commatime_convert(time).timestamp()) * 1_000_000_000
+
+
+def parse_devices(devices: list[dict[str, str]]) -> list[influx.Point]:
+    points: list[influx.Point] = []
+    for device in devices:
+        for spec in DEVICE_LOG_SPEC:
+            if not all(device.get(k) == v for k, v in spec["device_pattern"].items()):
+                continue
+            point = influx.Point(
+                measurement=spec["name"],
+                fields={fld: conv(device[fld]) for fld, conv in spec["measurements"]},
+                tags={t: str(device[t]) for t in spec["tags"]},
+                time=commatime_convert_ns(device["DATATIME"]),
+            )
+            points.append(point)
+    return points
+
+
+### COMMANDS
+
+
+def debug_timestamps(
+    solar_base_url: str, influx_client: influx.Client, more_args: list[str]
+):
     """Examining how often the timestamps update"""
     data = solar_devicelist(solar_base_url)
     for dev in data["devices"]:
-        print("{:20s} {} {}".format(
-            dev["SERIAL"],
-            commatime_convert(dev["CURTIME"]).isoformat(),
-            commatime_convert(dev["DATATIME"]).isoformat(),
-        ))
+        print(
+            "{:20s} {} {}".format(
+                dev["SERIAL"],
+                commatime_convert(dev["CURTIME"]).isoformat(),
+                commatime_convert(dev["DATATIME"]).isoformat(),
+            )
+        )
     return 0
 
 
-def device_details(solar_base_url, influx_client, more_args):
+def device_details(
+    solar_base_url: str, influx_client: influx.Client, more_args: list[str]
+):
+    # DOES NOT WORK
     try:
         (serial,) = more_args
     except ValueError:
@@ -136,9 +209,43 @@ def device_details(solar_base_url, influx_client, more_args):
     print(solar_devicedetails(solar_base_url, serial))
 
 
+def print_lines(
+    solar_base_url: str, influx_client: influx.Client, more_args: list[str]
+):
+    data = solar_devicelist(solar_base_url)
+    points = parse_devices(data["devices"])
+    for point in points:
+        print(point.as_line(), end="")
+
+
+def record_stats(
+    solar_base_url: str, influx_client: influx.Client, more_args: list[str]
+):
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-v", "--verbose", action="store_true", help="print out stat lines"
+    )
+    args = parser.parse_args(more_args)
+
+    if args.verbose:
+        print("making request...")
+
+    data = solar_devicelist(solar_base_url)
+    points = parse_devices(data["devices"])
+
+    if args.verbose:
+        print(datetime.datetime.utcnow().isoformat())
+        for point in points:
+            print(point.as_line(), end="")
+
+    print(influx_client.write_points(points))
+
+
 MODES = {
     "debug-timestamps": debug_timestamps,
     "device-details": device_details,
+    "print-lines": print_lines,
+    "record-stats": record_stats,
 }
 
 
@@ -154,7 +261,6 @@ def main():
     influx_client = influx.Client(**conf["influx"])
 
     return MODES[args.mode](conf["solar_base_url"], influx_client, more_args)
-
 
 
 if __name__ == "__main__":
