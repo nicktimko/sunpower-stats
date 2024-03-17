@@ -1,6 +1,8 @@
 # Sunpower Stats
 
-Reading Sunpower stats and putting them into Influx
+Reading Sunpower stats and putting them into Influx/Grafana
+
+![Screenshot of Grafana Dashboard](./grafana.png)
 
 ## Config and such
 
