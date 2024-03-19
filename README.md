@@ -29,17 +29,21 @@ for dev in resp.json()["devices"]:
 ```
 
 ## Running
+I ran it locally with the `dumbloop.ps1` PS script for a while, but cron on a computer that doesn't sleep on it's own is far more appropriate.
 
 ```
 python -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 
-echo $(pwd)/.venv/bin/python $(pwd)/solarstats.py record-stats --verbose
+# cron every minute
+(\
+  crontab -l 2>/dev/null;\
+  echo "*/1 * * * * cd $(pwd) && .venv/bin/python solarstats.py record-stats > /tmp/stats.out 2>/tmp/stats.err" \
+) | crontab -
 ```
 
-
 ## Reference
-Stuff used to develop, not deploy.
+Stuff used to develop.
 
 ### Devices
 
