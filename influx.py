@@ -1,4 +1,5 @@
 import time
+import typing
 
 import attrs
 import requests
@@ -28,13 +29,13 @@ def render_item(key, value):
 class Point:
     measurement: str = attrs.field(validator=name_validator)
 
-    fields: dict[str, float | int | str | bool] = attrs.field(
+    fields: typing.Dict[str, typing.Union[float, int, str, bool]] = attrs.field(
         validator=attrs.validators.deep_mapping(
             key_validator=name_validator,
             value_validator=attrs.validators.instance_of((float, int, str, bool)),
         )
     )
-    tags: dict[str, str] = attrs.field(
+    tags: typing.Dict[str, str] = attrs.field(
         factory=dict,
         validator=attrs.validators.deep_mapping(
             key_validator=name_validator,

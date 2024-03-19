@@ -2,6 +2,7 @@ import argparse
 import datetime
 import json
 import sys
+import typing
 
 import requests
 
@@ -119,7 +120,9 @@ def digest_device_data(data):
     devices["PVS"]
 
 
-def solar_devicelist(base_url) -> dict[str, str | list[dict[str, str]]]:
+def solar_devicelist(
+    base_url,
+) -> typing.Dict[str, typing.Union[str, typing.List[typing.Dict[str, str]]]]:
     """
     Takes ~5-6 seconds, about 1/5 sec per device to list.
     """
@@ -161,7 +164,9 @@ def commatime_convert_ns(time: str) -> int:
     return int(commatime_convert(time).timestamp()) * 1_000_000_000
 
 
-def parse_devices(devices: list[dict[str, str]]) -> list[influx.Point]:
+def parse_devices(
+    devices: typing.List[typing.Dict[str, str]]
+) -> typing.List[influx.Point]:
     points: list[influx.Point] = []
     for device in devices:
         for spec in DEVICE_LOG_SPEC:
@@ -181,7 +186,7 @@ def parse_devices(devices: list[dict[str, str]]) -> list[influx.Point]:
 
 
 def debug_timestamps(
-    solar_base_url: str, influx_client: influx.Client, more_args: list[str]
+    solar_base_url: str, influx_client: influx.Client, more_args: typing.List[str]
 ):
     """Examining how often the timestamps update"""
     data = solar_devicelist(solar_base_url)
@@ -197,7 +202,7 @@ def debug_timestamps(
 
 
 def device_details(
-    solar_base_url: str, influx_client: influx.Client, more_args: list[str]
+    solar_base_url: str, influx_client: influx.Client, more_args: typing.List[str]
 ):
     # DOES NOT WORK
     try:
@@ -210,7 +215,7 @@ def device_details(
 
 
 def print_lines(
-    solar_base_url: str, influx_client: influx.Client, more_args: list[str]
+    solar_base_url: str, influx_client: influx.Client, more_args: typing.List[str]
 ):
     data = solar_devicelist(solar_base_url)
     points = parse_devices(data["devices"])
@@ -219,7 +224,7 @@ def print_lines(
 
 
 def record_stats(
-    solar_base_url: str, influx_client: influx.Client, more_args: list[str]
+    solar_base_url: str, influx_client: influx.Client, more_args: typing.List[str]
 ):
     parser = argparse.ArgumentParser()
     parser.add_argument(

@@ -28,7 +28,20 @@ for dev in resp.json()["devices"]:
     devices.setdefault(dev["DEVICE_TYPE"], []).append(dev)
 ```
 
-## Devices
+## Running
+
+```
+python -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+
+echo $(pwd)/.venv/bin/python $(pwd)/solarstats.py record-stats --verbose
+```
+
+
+## Reference
+Stuff used to develop, not deploy.
+
+### Devices
 
 There are three `DEVICE_TYPE`'s:
 ```
@@ -38,7 +51,7 @@ There are three `DEVICE_TYPE`'s:
 
 In my case, there's 1 PVS (Photovoltaic System?), 2 Power Meters (one for generation, one for consumption?), and each panel has an inverter.
 
-### PVS
+#### PVS
 
 ```
 [{'DETAIL': 'detail',
@@ -63,7 +76,7 @@ In my case, there's 1 PVS (Photovoltaic System?), 2 Power Meters (one for genera
   'CURTIME': '2024,03,11,23,19,00'}]
 ```
 
-### Power Meter
+#### Power Meter
 
 One has the subtype `GROSS_PRODUCTION_SITE`, while the other is `NET_CONSUMPTION_LOADSIDE`.
 
@@ -97,7 +110,7 @@ One has the subtype `GROSS_PRODUCTION_SITE`, while the other is `NET_CONSUMPTION
  'CURTIME': '2024,03,11,23,19,01'}
 ```
 
-### Inverter
+#### Inverter
 
 At night, the
 
