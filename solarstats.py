@@ -1,6 +1,8 @@
 import argparse
 import datetime
 import json
+import socket
+import subprocess
 import sys
 import typing
 
@@ -254,10 +256,30 @@ MODES = {
 }
 
 
+def find_gateway(interface: str) -> str:
+    """
+    Get the gateway for a given interface.
+    """
+    result = subprocess.check_output(
+        "ip route show 0.0.0.0/0 dev".split() + [interface],
+        universal_newlines=True,
+    )
+    return result.split()[2]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("mode", choices=MODES)
     parser.add_argument("-c", "--config", default="solarstatconf.json")
+    # parser.add_argument(
+    #     "-H", "--host-for-stats",
+    #     help="Hostname to query for stats. Will attempt to autodetect if not provided."
+    # )
+    # parser.add_argument(
+    #     "-i", "--interface",
+    #     default="eth0",
+    #     help="Interface to look for the stats server on",
+    # )
     args, more_args = parser.parse_known_args()
 
     with open(args.config) as f:
@@ -265,7 +287,19 @@ def main():
 
     influx_client = influx.Client(**conf["influx"])
 
-    return MODES[args.mode](conf["solar_base_url"], influx_client, more_args)
+    addr_info = socket.getaddrinfo("www.sunpowerconsole.com", None, family=socket.AF_INET, type=socket.SOCK_STREAM)
+    resolved_ip = addr_info[0][4][0]
+    solar_base_url = "http://" + resolved_ip
+
+    # if args.host_for_stats:
+    #     solar_base_url = "http://" + args.host_for_stats
+    # else:
+    #     try:
+    #         solar_base_url = conf["solar_base_url"]
+    #     except KeyError:
+    #         solar_base_url = "http://" + find_gateway(args.interface)
+
+    return MODES[args.mode](solar_base_url, influx_client, more_args)
 
 
 if __name__ == "__main__":

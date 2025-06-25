@@ -4,6 +4,18 @@ Reading Sunpower stats and putting them into Influx/Grafana
 
 ![Screenshot of Grafana Dashboard](./grafana.png)
 
+## Raspberry Pi configuration
+
+If the WiFi keeps disconnecting when plugging in Ethernet (seems to be a problem that happened in some OS upgrade between March 2024 and June 2025?):
+```
+sudo nmcli c mod "Wired connection 1" ipv4.route-metric 200
+# using the RPi flasher, it sets up the wifi connection with the name "preconfigured"
+sudo nmcli c mod "preconfigured" ipv4.route-metric 100
+sudo systemctl restart NetworkManager
+# might need to reapply (nmcli device reapply eth0)? or just reboot?
+```
+
+
 ## Config and such
 
 Followed some blog posts. Gruby's post below has an HAProxy config that you can run on an RPi plugged in to the management port to proxy requests to the RPi (on your network) to the PVS system.
